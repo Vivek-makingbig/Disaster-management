@@ -1,56 +1,42 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
-// import "../styles/admindashboard.css";
 
-const AdminDashboard = () => {
-  const [orders, setOrders] = useState([]);
-  const [error, setError] = useState("");
+function Admin() {
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState("");
 
-  const fetchOrders = async () => {
+  const sendNotification = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/customer/getorders");
-      setOrders(res.data.orders);
+      const res = await axios.post("http://localhost:5000/twilio/send-sms", { message });
+      setStatus(res.data.success ? "✅ Message sent successfully!" : "❌ Failed to send message");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch orders");
+      console.error(err);
+      setStatus("❌ Error sending message");
     }
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
   return (
-    <div className="admin-container">
-      <h2>Admin Dashboard</h2>
-      {error && <p className="admin-error">{error}</p>}
-      <table className="orders-table">
-        <thead>
-          <tr>
-            <th>User Name</th>
-            <th>Item</th>
-            <th>Quantity</th>
-            <th>Order Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.length > 0 ? (
-            orders.map((order) => (
-              <tr key={order._id}>
-                <td>{order.name}</td>
-                <td>{order.item}</td>
-                <td>{order.quantity}</td>
-                <td>{new Date(order.createdAt).toLocaleString()}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="4">No orders yet.</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <h1 className="text-2xl font-bold mb-4">Send SMS Notification</h1>
+
+      <textarea
+        className="border p-2 rounded w-80 mb-4"
+        rows="4"
+        placeholder="Enter your message here..."
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+      />
+
+      <button
+        onClick={sendNotification}
+        className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
+        Send Notification
+      </button>
+
+      {status && <p className="mt-4">{status}</p>}
     </div>
   );
-};
+}
 
-export default AdminDashboard;
+export default Admin;
